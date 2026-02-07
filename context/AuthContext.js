@@ -1,78 +1,66 @@
 "use client";
 import { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabaseAuthClient';
+import { useRouter } from 'next/navigation';
 
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const router = useRouter();
 
     useEffect(() => {
-        // Check local storage on initial load
-        const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-        const userEmail = localStorage.getItem('userEmail');
+        // Check active session
+        const getSession = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            setUser(session?.user ?? null);
+            setLoading(false);
+        };
 
-        if (isLoggedIn) {
-            // Fallback if email is missing but logged in
-            setUser({ email: userEmail || 'user@example.com' });
-        }
-        setLoading(false);
-    }, []);
+        getSession();
+
+        // Listen for auth changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            setUser(session?.user ?? null);
+            setLoading(false);
+            if (_event === 'SIGNED_IN') router.refresh();
+            if (_event === 'SIGNED_OUT') {
+                setUser(null);
+                router.refresh();
+                router.push('/login');
+            }
+        });
+
+        return () => subscription.unsubscribe();
+    }, [router]);
 
     const login = async (email, password) => {
-        try {
-            const res = await fetch('/api/auth/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password }),
-            });
-
-            if (!res.ok) {
-                const error = await res.json();
-                throw new Error(error.error || 'Login failed');
-            }
-
-            const userData = await res.json();
-            localStorage.setItem('isLoggedIn', 'true');
-            localStorage.setItem('userEmail', userData.email);
-            // Ideally store a token here if using JWT
-            setUser(userData);
-            return userData;
-        } catch (error) {
-            console.error(error);
-            throw error;
-        }
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+        });
+        if (error) throw error;
+        return data;
     };
 
-    const register = async (email, password, name) => {
-        try {
-            const res = await fetch('/api/auth/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password, name }),
-            });
-
-            if (!res.ok) {
-                const error = await res.json();
-                throw new Error(error.error || 'Registration failed');
-            }
-
-            const userData = await res.json();
-            // Auto login after register
-            localStorage.setItem('isLoggedIn', 'true');
-            localStorage.setItem('userEmail', userData.email);
-            setUser(userData);
-            return userData;
-        } catch (error) {
-            console.error(error);
-            throw error;
-        }
+    const register = async (email, password, fullName) => {
+        const { data, error } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+                data: {
+                    full_name: fullName,
+                },
+            },
+        });
+        if (error) throw error;
+        return data;
     };
 
-    const logout = () => {
-        localStorage.removeItem('isLoggedIn');
-        localStorage.removeItem('userEmail');
-        setUser(null);
+    const logout = async () => {
+        const { error } = await supabase.auth.signOut();
+        if (error) console.error('Error logging out:', error);
     };
 
     return (

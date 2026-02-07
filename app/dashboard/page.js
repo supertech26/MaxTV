@@ -7,12 +7,7 @@ import { useEffect } from 'react';
 export default function Dashboard() {
   const router = useRouter();
 
-  useEffect(() => {
-    const isLoggedIn = localStorage.getItem('isLoggedIn');
-    if (!isLoggedIn) {
-      router.push('/login');
-    }
-  }, [router]);
+  /* Manual check removed, handled by ProtectedRoute wrapper in Layout */
 
 
 

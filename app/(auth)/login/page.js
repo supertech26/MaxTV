@@ -23,8 +23,10 @@ function LoginForm() {
 
     try {
       await login(email, password);
+      // AuthContext listener will handle redirect
       router.push(callbackUrl);
     } catch (err) {
+      console.error(err);
       setError(err.message);
     } finally {
       setLoading(false);

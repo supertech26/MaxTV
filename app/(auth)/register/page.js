@@ -27,8 +27,13 @@ function RegisterForm() {
 
         try {
             await register(email, password, fullName);
+            // Supabase auto-confirms or sends email. 
+            // If auto-confirm is on, user is logged in and context listener will redirect.
+            // If email confirm is needed, show message.
+            // For now assuming auto-login/redirect via AuthContext listener.
             router.push(callbackUrl);
         } catch (err) {
+            console.error(err);
             setError(err.message);
         } finally {
             setLoading(false);

@@ -27,12 +27,16 @@ export async function POST(request) {
         const filename = Date.now() + '_' + file.name.replace(/\s/g, '_');
 
         // Upload to Supabase Storage
+        // Upload to Supabase Storage
         // Use Admin client if available to bypass RLS, otherwise use public client
-        const supabaseClient = (await import('@/lib/supabase')).supabaseAdmin || supabase;
+        const lib = await import('@/lib/supabase');
+        const supabaseClient = lib.supabaseAdmin || lib.supabase;
 
-        if (!supabaseClient) {
-            console.error('Supabase Admin Client not available');
-            // Fallback or error handling depending on strictness
+        const usingAdmin = !!lib.supabaseAdmin;
+        console.log(`[Upload] Using Admin Client: ${usingAdmin}`);
+
+        if (!usingAdmin) {
+            console.warn('[Upload] Warning: Fallback to Anon client. RLS policies may block upload.');
         }
 
         const { data, error } = await supabaseClient
@@ -45,11 +49,14 @@ export async function POST(request) {
 
         if (error) {
             console.error('Supabase Upload Error:', error);
-            throw error;
+            // Return specific error for debugging
+            return NextResponse.json({
+                error: `Upload Error: ${error.message} (Admin: ${usingAdmin})`
+            }, { status: 500 });
         }
 
         // Get Public URL
-        const { data: { publicUrl } } = supabase
+        const { data: { publicUrl } } = supabaseClient
             .storage
             .from('payment-proofs')
             .getPublicUrl(filename);
@@ -58,6 +65,6 @@ export async function POST(request) {
 
     } catch (error) {
         console.error('Upload Error:', error);
-        return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
+        return NextResponse.json({ error: `Server Error: ${error.message}` }, { status: 500 });
     }
 }

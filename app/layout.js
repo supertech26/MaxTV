@@ -23,11 +23,14 @@ export const metadata = {
 import WhatsAppButton from "@/components/ui/WhatsAppButton";
 import ClientProviders from "@/components/providers/ClientProviders";
 
+import BackgroundBlobs from "@/components/ui/BackgroundBlobs";
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={inter.className}>
         <ClientProviders>
+          <BackgroundBlobs />
           {children}
           <WhatsAppButton />
         </ClientProviders>

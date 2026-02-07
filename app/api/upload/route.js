@@ -27,8 +27,15 @@ export async function POST(request) {
         const filename = Date.now() + '_' + file.name.replace(/\s/g, '_');
 
         // Upload to Supabase Storage
-        // Ensure you have created a bucket named 'payment-proofs' in Supabase
-        const { data, error } = await supabase
+        // Use Admin client if available to bypass RLS, otherwise use public client
+        const supabaseClient = (await import('@/lib/supabase')).supabaseAdmin || supabase;
+
+        if (!supabaseClient) {
+            console.error('Supabase Admin Client not available');
+            // Fallback or error handling depending on strictness
+        }
+
+        const { data, error } = await supabaseClient
             .storage
             .from('payment-proofs')
             .upload(filename, buffer, {

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import Button from '@/components/ui/Button';
 import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 
 // ... imports ...
 
@@ -16,12 +17,13 @@ function RegisterForm() {
     const [password, setPassword] = useState('');
     const [fullName, setFullName] = useState('');
 
+    const { login } = useAuth();
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         // Simulate registration & login
-        localStorage.setItem('isLoggedIn', 'true');
-        localStorage.setItem('userEmail', email);
+        login(email);
         setTimeout(() => {
             setLoading(false);
             router.push(callbackUrl);

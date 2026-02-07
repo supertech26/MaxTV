@@ -3,10 +3,12 @@ import Link from 'next/link';
 import Button from '@/components/ui/Button';
 import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { login } = useAuth();
   const [loading, setLoading] = useState(false);
   const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
 
@@ -18,8 +20,7 @@ function LoginForm() {
     setLoading(true);
     // Simulate login
     // In a real app, you would validate credentials here
-    localStorage.setItem('isLoggedIn', 'true'); // Simple mock auth
-    localStorage.setItem('userEmail', email);
+    login(email);
     setTimeout(() => {
       setLoading(false);
       router.push(callbackUrl);

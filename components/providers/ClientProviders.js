@@ -1,10 +1,13 @@
 "use client";
 import { LanguageProvider } from "@/context/LanguageContext";
+import { AuthProvider } from "@/context/AuthContext";
 
 export default function ClientProviders({ children }) {
     return (
-        <LanguageProvider>
-            {children}
-        </LanguageProvider>
+        <AuthProvider>
+            <LanguageProvider>
+                {children}
+            </LanguageProvider>
+        </AuthProvider>
     );
 }

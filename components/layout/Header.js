@@ -4,9 +4,12 @@ import Button from '../ui/Button';
 import { useLanguage } from '@/context/LanguageContext';
 import Image from 'next/image';
 
+import { useAuth } from '@/context/AuthContext';
+
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { language, switchLanguage, t } = useLanguage();
+  const { user } = useAuth();
 
   return (
     <header className="header">
@@ -45,12 +48,21 @@ export default function Header() {
               </button>
             </div>
           </div>
-          <Link href="/login">
-            <Button variant="outline">{t('login')}</Button>
-          </Link>
-          <Link href="/register">
-            <Button variant="primary">{t('getStarted')}</Button>
-          </Link>
+
+          {user ? (
+            <Link href="/dashboard">
+              <Button variant="primary" className="btn-glow">{t('myProfile')}</Button>
+            </Link>
+          ) : (
+            <>
+              <Link href="/login">
+                <Button variant="outline">{t('login')}</Button>
+              </Link>
+              <Link href="/register">
+                <Button variant="primary">{t('getStarted')}</Button>
+              </Link>
+            </>
+          )}
         </div>
 
         <button className="mobile-toggle" onClick={() => setIsMenuOpen(!isMenuOpen)}>

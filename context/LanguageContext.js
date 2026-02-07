@@ -42,7 +42,8 @@ const translations = {
         howItWorks: "How It Works",
         contact: "Contact",
         login: "Login",
-        getStarted: "Create Account"
+        getStarted: "Create Account",
+        myProfile: "My Dashboard"
     },
     FR: {
         home: "Accueil",
@@ -51,7 +52,8 @@ const translations = {
         howItWorks: "Comment ça marche",
         contact: "Contact",
         login: "Connexion",
-        getStarted: "Créer un compte"
+        getStarted: "Créer un compte",
+        myProfile: "Mon Tableau de bord"
     },
     AR: {
         home: "الرئيسية",
@@ -60,6 +62,7 @@ const translations = {
         howItWorks: "كيف يعمل",
         contact: "اتصل بنا",
         login: "دخول",
-        getStarted: "إنشاء حساب"
+        getStarted: "إنشاء حساب",
+        myProfile: "لوحة التحكم"
     }
 };

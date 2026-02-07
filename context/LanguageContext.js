@@ -42,7 +42,7 @@ const translations = {
         howItWorks: "How It Works",
         contact: "Contact",
         login: "Login",
-        getStarted: "Get Started"
+        getStarted: "Create Account"
     },
     FR: {
         home: "Accueil",
@@ -51,7 +51,7 @@ const translations = {
         howItWorks: "Comment ça marche",
         contact: "Contact",
         login: "Connexion",
-        getStarted: "Commencer"
+        getStarted: "Créer un compte"
     },
     AR: {
         home: "الرئيسية",
@@ -60,6 +60,6 @@ const translations = {
         howItWorks: "كيف يعمل",
         contact: "اتصل بنا",
         login: "دخول",
-        getStarted: "ابدأ الآن"
+        getStarted: "إنشاء حساب"
     }
 };

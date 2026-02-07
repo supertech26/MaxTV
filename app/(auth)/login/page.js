@@ -14,21 +14,26 @@ function LoginForm() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    // Simulate login
-    // In a real app, you would validate credentials here
-    login(email);
-    setTimeout(() => {
-      setLoading(false);
+    setError('');
+
+    try {
+      await login(email, password);
       router.push(callbackUrl);
-    }, 1000);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <form onSubmit={handleSubmit} className="auth-form">
+      {error && <div className="error-message">{error}</div>}
       <div className="form-group">
         <label>Email Address</label>
         <input
@@ -57,6 +62,16 @@ function LoginForm() {
       </Button>
 
       <style jsx>{`
+                .error-message {
+                    background: rgba(255, 68, 68, 0.1);
+                    color: #ff4444;
+                    padding: 10px;
+                    border-radius: 8px;
+                    margin-bottom: 1rem;
+                    font-size: 0.875rem;
+                    text-align: center;
+                    border: 1px solid rgba(255, 68, 68, 0.2);
+                }
                 .input {
                   width: 100%;
                   padding: 12px;

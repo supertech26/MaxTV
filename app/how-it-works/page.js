@@ -153,7 +153,7 @@ export default function HowItWorks() {
                 <div className="container">
                     <h2>Ready to Watch?</h2>
                     <p>Join thousands of happy customers enjoying premium TV today.</p>
-                    <Link href="/subscriptions">
+                    <Link href="/register">
                         <Button size="lg" variant="primary">Create Account</Button>
                     </Link>
                 </div>

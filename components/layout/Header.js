@@ -48,7 +48,7 @@ export default function Header() {
           <Link href="/login">
             <Button variant="outline">{t('login')}</Button>
           </Link>
-          <Link href="/subscriptions">
+          <Link href="/register">
             <Button variant="primary">{t('getStarted')}</Button>
           </Link>
         </div>

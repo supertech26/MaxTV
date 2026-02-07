@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600">
+<rect width="900" height="600" fill="#006C35"/>
+<path fill="#fff" d="M220 380h450v40H220zm140-100c-20 0-40-10-50-30s-10-40 0-60 30-30 50-30h120c20 0 40 10 50 30s10 40 0 60-30 30-50 30H360z"/>
+<!-- Simplified sword/text representation for icon size -->
+</svg>

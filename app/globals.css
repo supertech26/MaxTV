@@ -71,24 +71,34 @@ a {
 
 @keyframes neon-pulse {
   0% {
-    box-shadow: 0 0 5px #00e588, 0 0 10px #00e588, 0 0 20px #00e588;
-    transform: scale(1);
+    box-shadow: 0 0 5px #00e588, 0 0 10px #00e588;
   }
 
   50% {
-    box-shadow: 0 0 10px #00e588, 0 0 20px #00e588, 0 0 40px #00e588, 0 0 80px rgba(0, 229, 136, 0.4);
-    transform: scale(1.02);
+    box-shadow:
+      0 0 5px #00e588,
+      0 0 20px #00e588,
+      0 0 40px #00e588,
+      0 0 60px rgba(0, 229, 136, 0.6);
   }
 
   100% {
-    box-shadow: 0 0 5px #00e588, 0 0 10px #00e588, 0 0 20px #00e588;
-    transform: scale(1);
+    box-shadow: 0 0 5px #00e588, 0 0 10px #00e588;
   }
 }
 
 .btn-glow {
-  animation: neon-pulse 1.5s infinite alternate;
-  border: 1px solid rgba(0, 229, 136, 0.8);
+  /* Intense Neon Style */
+  background: transparent !important;
+  /* Make bg transparent to let glow shine or keep if desired, usually neon needs dark bg or solid color */
+  background: #00e588 !important;
+  /* Keep solid for visibility against dark bg, but can be adjusted */
+  color: #000 !important;
+  font-weight: 800 !important;
+  border: 2px solid #fff;
+  animation: neon-pulse 2s infinite alternate;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+  letter-spacing: 1px;
 }
 
 

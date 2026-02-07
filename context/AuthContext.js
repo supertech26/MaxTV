@@ -12,8 +12,9 @@ export function AuthProvider({ children }) {
         const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
         const userEmail = localStorage.getItem('userEmail');
 
-        if (isLoggedIn && userEmail) {
-            setUser({ email: userEmail });
+        if (isLoggedIn) {
+            // Fallback if email is missing but logged in
+            setUser({ email: userEmail || 'user@example.com' });
         }
         setLoading(false);
     }, []);

@@ -45,7 +45,7 @@ export default function Pricing() {
                             ))}
                         </ul>
                         <Link href={`/checkout?plan=${encodeURIComponent(plan.name)}&price=${plan.price.replace('€', '')}&name=${encodeURIComponent(plan.name)}`} style={{ textDecoration: 'none', width: '100%' }}>
-                            <Button variant={plan.popular ? 'primary' : 'outline'} fullWidth>
+                            <Button variant={plan.popular ? 'primary' : 'outline'} fullWidth className={plan.popular ? 'btn-glow' : ''}>
                                 Subscribe Now
                             </Button>
                         </Link>

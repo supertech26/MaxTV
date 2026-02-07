@@ -18,7 +18,7 @@ export default function Hero() {
 
         <div className="cta-group">
           <Link href="/subscriptions">
-            <Button size="lg" className="hero-btn">Subscribe Now</Button>
+            <Button size="lg" className="hero-btn btn-glow">Subscribe Now</Button>
           </Link>
           <Link href="/apps">
             <Button variant="outline" size="lg">Get Player App</Button>

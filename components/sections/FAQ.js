@@ -32,20 +32,31 @@ export default function FAQ() {
   ];
 
   return (
-    <section className="container section-pad">
-      <h2 className="section-title">FAQ</h2>
-      <p className="section-subtitle">Frequently Asked Questions</p>
-      <p className="section-desc">Any questions? We are here to help.</p>
+    <section className="container section-pad" id="faq">
+      <div className="text-center mb-16">
+        <h2 className="section-title">
+          Frequently <span className="text-gradient-primary">Asked Questions</span>
+        </h2>
+        <p className="section-desc">Everything you need to know about our service.</p>
+      </div>
 
       <div className="faq-grid">
         {faqs.map((faq, i) => (
-          <div key={i} className={`faq-item ${openIndex === i ? 'active' : ''}`} onClick={() => toggleFAQ(i)}>
+          <div
+            key={i}
+            className={`faq-item glass-card ${openIndex === i ? 'active' : ''}`}
+            onClick={() => toggleFAQ(i)}
+          >
             <div className="question">
               <h3>{faq.question}</h3>
-              <span className="toggle">{openIndex === i ? '−' : '+'}</span>
+              <div className="icon-wrapper">
+                <span className="icon"></span>
+              </div>
             </div>
-            <div className="answer">
-              <p>{faq.answer}</p>
+            <div className="answer-wrapper">
+              <div className="answer-content">
+                <p>{faq.answer}</p>
+              </div>
             </div>
           </div>
         ))}
@@ -53,25 +64,23 @@ export default function FAQ() {
 
       <style jsx>{`
         .section-pad {
-          padding: 4rem 1rem;
+          padding: 6rem 1rem;
+          position: relative;
+          z-index: 2;
         }
+        .text-center { text-align: center; }
+        .mb-16 { margin-bottom: 4rem; }
+        
         .section-title {
-          text-align: center;
-          margin-bottom: 0.5rem;
-          font-size: 2.5rem;
-        }
-        .section-subtitle {
-          text-align: center;
-          color: var(--primary);
-          font-size: 1.5rem;
-          font-weight: 600;
+          font-size: 3rem;
           margin-bottom: 1rem;
         }
+        
         .section-desc {
-          text-align: center;
           color: var(--text-muted);
-          margin-bottom: 3rem;
-          font-size: 1.1rem;
+          font-size: 1.2rem;
+          max-width: 600px;
+          margin: 0 auto;
         }
         
         .faq-grid {
@@ -79,56 +88,123 @@ export default function FAQ() {
           margin: 0 auto;
           display: flex;
           flex-direction: column;
-          gap: 1rem;
+          gap: 1.25rem;
         }
         
         .faq-item {
-          background: var(--secondary);
-          border: 1px solid var(--border);
-          border-radius: 12px;
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(255, 255, 255, 0.05); /* Very subtle default border */
+          border-radius: 16px;
           overflow: hidden;
           cursor: pointer;
-          transition: border-color 0.3s ease;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          backdrop-filter: blur(10px);
         }
+        
         .faq-item:hover {
-          border-color: var(--primary);
+          background: rgba(255, 255, 255, 0.05);
+          border-color: rgba(255, 255, 255, 0.1);
         }
+        
         .faq-item.active {
-          border-color: var(--primary);
+          background: rgba(0, 229, 136, 0.05); /* Subtle green tint */
+          border-color: rgba(0, 229, 136, 0.3); /* Brighter border */
+          box-shadow: 0 10px 40px -10px rgba(0, 229, 136, 0.1);
         }
         
         .question {
-          padding: 1.5rem;
+          padding: 1.5rem 2rem;
           display: flex;
           justify-content: space-between;
           align-items: center;
         }
+        
         .question h3 {
-          font-size: 1.1rem;
+          font-size: 1.15rem;
           font-weight: 600;
           margin: 0;
-        }
-        .toggle {
-          font-size: 1.5rem;
-          color: var(--primary);
-          font-weight: 700;
-          line-height: 1;
+          color: var(--foreground);
+          transition: color 0.3s ease;
         }
         
-        .answer {
-          max-height: 0;
-          overflow: hidden;
-          transition: max-height 0.3s ease, padding 0.3s ease;
-          background: rgba(0,0,0,0.2);
+        .faq-item.active .question h3 {
+          color: var(--primary);
         }
-        .faq-item.active .answer {
-          max-height: 200px;
-          padding: 0 1.5rem 1.5rem;
+        
+        /* Animated Icon */
+        .icon-wrapper {
+          width: 24px;
+          height: 24px;
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
-        .answer p {
-          color: var(--text-muted);
-          line-height: 1.6;
+        
+        .icon, .icon::after {
+          content: '';
+          position: absolute;
+          width: 16px;
+          height: 2px;
+          background-color: var(--foreground);
+          border-radius: 2px;
+          transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s;
+        }
+        
+        .icon::after {
+          transform: rotate(90deg);
+        }
+        
+        .faq-item:hover .icon, .faq-item:hover .icon::after {
+          background-color: var(--primary);
+        }
+
+        .faq-item.active .icon {
+          transform: rotate(45deg); /* Rotates the horizontal line */
+          background-color: var(--primary);
+        }
+        
+        .faq-item.active .icon::after {
+           transform: rotate(90deg); /* Vertical line rotates with the parent, effectively making + into x */
+           background-color: var(--primary);
+        }
+
+        /* Smooth Accordion Animation */
+        .answer-wrapper {
+          display: grid;
+          grid-template-rows: 0fr;
+          transition: grid-template-rows 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .faq-item.active .answer-wrapper {
+          grid-template-rows: 1fr;
+        }
+        
+        .answer-content {
+          min-height: 0;
+          color: #a5a5a5;
+          line-height: 1.7;
+          font-size: 1.05rem;
+        }
+        
+        .answer-content p {
+          padding: 0 2rem 2rem;
           margin: 0;
+          opacity: 0;
+          transform: translateY(10px);
+          transition: all 0.3s ease;
+          transition-delay: 0.1s;
+        }
+        
+        .faq-item.active .answer-content p {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        
+        @media (max-width: 768px) {
+            .section-title { font-size: 2rem; }
+            .question { padding: 1.25rem; }
+            .answer-content p { padding: 0 1.25rem 1.25rem; }
         }
       `}</style>
     </section>

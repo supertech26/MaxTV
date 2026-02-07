@@ -1,7 +1,5 @@
-
 import { NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
+import { supabase } from '@/lib/supabase';
 
 export async function POST(request) {
     try {
@@ -23,30 +21,33 @@ export async function POST(request) {
             return NextResponse.json({ error: 'File size too large (max 5MB).' }, { status: 400 });
         }
 
-        const buffer = Buffer.from(await file.arrayBuffer());
+        const buffer = await file.arrayBuffer();
 
         // Create unique filename
         const filename = Date.now() + '_' + file.name.replace(/\s/g, '_');
 
-        // Define upload directory (public/uploads)
-        const uploadDir = path.join(process.cwd(), 'public/uploads');
+        // Upload to Supabase Storage
+        // Ensure you have created a bucket named 'payment-proofs' in Supabase
+        const { data, error } = await supabase
+            .storage
+            .from('payment-proofs')
+            .upload(filename, buffer, {
+                contentType: file.type,
+                upsert: false
+            });
 
-        // Ensure directory exists
-        try {
-            await mkdir(uploadDir, { recursive: true });
-        } catch (e) {
-            // Ignore error if directory exists
+        if (error) {
+            console.error('Supabase Upload Error:', error);
+            throw error;
         }
 
-        const filePath = path.join(uploadDir, filename);
+        // Get Public URL
+        const { data: { publicUrl } } = supabase
+            .storage
+            .from('payment-proofs')
+            .getPublicUrl(filename);
 
-        // Write file
-        await writeFile(filePath, buffer);
-
-        // Return public URL
-        const fileUrl = `/uploads/${filename}`;
-
-        return NextResponse.json({ success: true, url: fileUrl });
+        return NextResponse.json({ success: true, url: publicUrl });
 
     } catch (error) {
         console.error('Upload Error:', error);

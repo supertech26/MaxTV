@@ -42,16 +42,28 @@ export async function POST(request) {
                 userId: user.id,
                 total: parseFloat(price),
                 currency: 'EUR',
-                status: 'PENDING', // Default
-                paymentStatus: paymentMethod === 'PAYPAL' ? 'PAID' : 'PENDING', // Assume PayPal is paid if we get here with ID
+                status: 'PENDING',
+                paymentStatus: paymentMethod === 'PAYPAL' ? 'PAID' : 'PENDING',
                 paymentMethod: paymentMethod,
                 transactionId: transactionId,
+                paymentProof: body.paymentProof || null, // FIX: Save the proof URL
                 items: {
                     create: {
-                        productId: planId, // Using planId as productId for simplicity or relation
+                        product: {
+                            connectOrCreate: {
+                                where: { id: planId },
+                                create: {
+                                    id: planId,
+                                    name: type === 'SUBSCRIPTION' ? `${planId} Subscription` : 'App License',
+                                    price: parseFloat(price),
+                                    description: `Auto-created for ${planId}`,
+                                    duration: planId.includes('12') ? 12 : 1, // Simple guess
+                                    type: type
+                                }
+                            }
+                        },
                         price: parseFloat(price),
                         macAddress: macAddress,
-                        // If it's a subscription, we might want to create the subscription record too
                     }
                 }
             },

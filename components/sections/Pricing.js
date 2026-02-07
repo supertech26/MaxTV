@@ -62,21 +62,25 @@ export default function Pricing() {
           margin: 0 auto;
         }
         .pricing-card {
-           background: var(--card-bg);
+           background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+           backdrop-filter: blur(12px);
+           -webkit-backdrop-filter: blur(12px);
+           border: 1px solid rgba(255, 255, 255, 0.2);
+           box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
            padding: 2.5rem;
            border-radius: 20px;
-           border: 1px solid var(--border);
            position: relative;
            text-align: center;
            transition: all 0.4s ease;
            display: flex;
            flex-direction: column;
-           backdrop-filter: blur(12px);
         }
         .pricing-card:hover {
            transform: translateY(-8px);
-           border-color: var(--primary);
-           box-shadow: 0 10px 40px -10px rgba(0, 229, 136, 0.15);
+           backdrop-filter: blur(16px);
+           -webkit-backdrop-filter: blur(16px);
+           border-color: rgba(255, 255, 255, 0.5);
+           box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5);
         }
         .popular {
            border-color: var(--primary);

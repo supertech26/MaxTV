@@ -36,7 +36,7 @@ export async function getUserDashboardData(userEmail) {
             const start = new Date(activeSub.createdAt);
 
             if (end > now) {
-                const totalDuration = end - start;
+                const totalDuration = (end - start) || 1; // Prevent division by zero
                 const elapsed = now - start;
                 const remaining = end - now;
 

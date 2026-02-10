@@ -1,129 +1,209 @@
 "use client";
-export default function AdminDashboard() {
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/context/AuthContext';
+import { fetchAllData, updateSubscription, updateUserRole } from './actions';
+import AdminGuard from '@/components/auth/AdminGuard';
+import { useRouter } from 'next/navigation';
+
+function Ta7akomContent() {
+    const { user } = useAuth();
+    const [data, setData] = useState({ subscriptions: [], stats: { totalUsers: 0, activeSubs: 0, pendingSubs: 0 } });
+    const [loading, setLoading] = useState(true);
+    const [search, setSearch] = useState('');
+    const [updating, setUpdating] = useState(null);
+
+    useEffect(() => {
+        loadData();
+    }, []);
+
+    const loadData = async () => {
+        try {
+            const res = await fetchAllData(user?.email);
+            if (!res.error) {
+                setData(res.data);
+            }
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleSaveSub = async (subId, m3u, date) => {
+        setUpdating(subId);
+        const res = await updateSubscription(subId, m3u, date, user?.email);
+        if (res.success) {
+            loadData();
+            alert("Subscription updated!");
+        } else {
+            alert("Error: " + res.error);
+        }
+        setUpdating(null);
+    };
+
+    const handleRoleChange = async (userId, newRole) => {
+        if (!confirm(`Change role to ${newRole}?`)) return;
+        setUpdating(userId); // reusing loading state id
+        const res = await updateUserRole(userId, newRole, user?.email);
+        if (res.success) {
+            loadData();
+        } else {
+            alert("Error: " + res.error);
+        }
+        setUpdating(null);
+    }
+
+    // Filter
+    const filteredSubs = data.subscriptions.filter(sub =>
+        sub.user.email?.toLowerCase().includes(search.toLowerCase()) ||
+        sub.user.fullName?.toLowerCase().includes(search.toLowerCase())
+    );
+
+    if (loading) return <div className="text-white text-center p-20">Loading Dashboard...</div>;
+
     return (
-        <div>
-            <div className="stats-cards">
-                <div className="card">
-                    <h3>Total Revenue</h3>
-                    <p className="value">€12,450</p>
-                    <span className="trend positive">+15% this week</span>
+        <div className="min-h-screen bg-[#050b18] text-white p-4 md:p-8 font-sans">
+            <div className="max-w-7xl mx-auto">
+                <header className="flex justify-between items-center mb-8">
+                    <div>
+                        <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-cyan-500">
+                            Ta7akom Dashboard
+                        </h1>
+                        <p className="text-gray-400 text-sm">Control Panel</p>
+                    </div>
+                    <div className="text-right">
+                        <div className="text-sm text-gray-400">Admin</div>
+                        <div className="font-semibold">{user?.email}</div>
+                    </div>
+                </header>
+
+                {/* Stats Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <StatCard title="Total Users" value={data.stats.totalUsers} color="blue" />
+                    <StatCard title="Active Subscriptions" value={data.stats.activeSubs} color="emerald" />
+                    <StatCard title="Pending / Issues" value={data.stats.pendingSubs} color="yellow" />
                 </div>
-                <div className="card">
-                    <h3>Active Subs</h3>
-                    <p className="value">1,240</p>
-                    <span className="trend positive">+45 new</span>
+
+                {/* Search */}
+                <div className="mb-6">
+                    <input
+                        type="text"
+                        placeholder="Search users..."
+                        value={search}
+                        onChange={e => setSearch(e.target.value)}
+                        className="w-full max-w-md p-3 rounded-xl bg-[#0f172a] border border-gray-700 text-white focus:ring-2 focus:ring-emerald-500 outline-none"
+                    />
                 </div>
-                <div className="card">
-                    <h3>Pending Orders</h3>
-                    <p className="value">5</p>
-                    <span className="trend warning">Action needed</span>
+
+                {/* Table */}
+                <div className="overflow-x-auto bg-[#0f172a] rounded-xl border border-gray-800 shadow-xl">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="bg-[#1e293b] text-gray-400 text-sm uppercase tracking-wider">
+                                <th className="p-4">User</th>
+                                <th className="p-4">Role</th>
+                                <th className="p-4">Plan / Status</th>
+                                <th className="p-4">M3U Link</th>
+                                <th className="p-4">Expiry</th>
+                                <th className="p-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {filteredSubs.map(sub => (
+                                <Row
+                                    key={sub.id}
+                                    sub={sub}
+                                    onSave={handleSaveSub}
+                                    onRoleChange={handleRoleChange}
+                                    updating={updating === sub.id || updating === sub.user.id}
+                                />
+                            ))}
+                        </tbody>
+                    </table>
+                    {filteredSubs.length === 0 && (
+                        <div className="p-8 text-center text-gray-500">No subscriptions found.</div>
+                    )}
                 </div>
             </div>
-
-            <h3 className="section-title">Recent Orders</h3>
-            <div className="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Order ID</th>
-                            <th>User</th>
-                            <th>Product</th>
-                            <th>Status</th>
-                            <th>Date</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>#ORD-8832</td>
-                            <td>john@example.com</td>
-                            <td>12 Months IPTV</td>
-                            <td><span className="status active">Completed</span></td>
-                            <td>Today, 10:30 AM</td>
-                            <td><button className="btn-sm">View</button></td>
-                        </tr>
-                        <tr>
-                            <td>#ORD-8831</td>
-                            <td>sarah@test.com</td>
-                            <td>Samsung License</td>
-                            <td><span className="status pending">Pending</span></td>
-                            <td>Yesterday</td>
-                            <td><button className="btn-sm">View</button></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <style jsx>{`
-        .stats-cards {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-          gap: 2rem;
-          margin-bottom: 3rem;
-        }
-        .card {
-          background: var(--secondary);
-          padding: 2rem;
-          border-radius: 20px;
-          border: 1px solid var(--border);
-          position: relative;
-          overflow: hidden;
-          transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .card:hover {
-          transform: translateY(-5px);
-          box-shadow: 0 20px 40px -10px rgba(0,0,0,0.3);
-          border-color: var(--primary);
-        }
-        .card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 100%);
-        }
-        .card h3 { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; }
-        .value { font-size: 2.5rem; font-weight: 800; margin-bottom: 0.5rem; color: var(--foreground); }
-        .trend { font-size: 0.8rem; border-radius: 6px; padding: 4px 8px; font-weight: 600; }
-        .trend.positive { color: #00dc82; background: rgba(0, 220, 130, 0.1); }
-        .trend.warning { color: #ffd700; background: rgba(255, 215, 0, 0.1); }
-        
-        .section-title { margin-bottom: 1.5rem; font-size: 1.5rem; font-weight: 700; }
-        
-        .table-container {
-          background: var(--secondary);
-          border-radius: 20px;
-          border: 1px solid var(--border);
-          overflow: hidden;
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 1.25rem 1.5rem; text-align: left; border-bottom: 1px solid var(--border); }
-        th { color: var(--text-muted); font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(0,0,0,0.2); }
-        td { font-size: 0.95rem; font-weight: 500; }
-        tr:last-child td { border-bottom: none; }
-        tr:hover td { background: rgba(255,255,255,0.02); }
-        
-        .status { padding: 6px 12px; border-radius: 30px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
-        .status.active { background: rgba(0, 220, 130, 0.15); color: #00dc82; box-shadow: 0 0 10px rgba(0, 220, 130, 0.2); }
-        .status.pending { background: rgba(255, 215, 0, 0.15); color: #ffd700; box-shadow: 0 0 10px rgba(255, 215, 0, 0.2); }
-        
-        .btn-sm {
-          padding: 6px 16px;
-          border-radius: 8px;
-          background: var(--background);
-          color: var(--foreground);
-          border: 1px solid var(--border);
-          cursor: pointer;
-          font-weight: 600;
-          font-size: 0.8rem;
-          transition: all 0.2s;
-        }
-        .btn-sm:hover {
-            border-color: var(--primary);
-            color: var(--primary);
-            background: rgba(var(--primary-rgb), 0.1);
-        }
-      `}</style>
         </div>
+    );
+}
+
+function Row({ sub, onSave, onRoleChange, updating }) {
+    const [m3u, setM3u] = useState(sub.m3uUrl || '');
+    const [expiry, setExpiry] = useState(sub.endDate ? new Date(sub.endDate).toISOString().split('T')[0] : '');
+
+    return (
+        <tr className="border-b border-gray-800 hover:bg-[#131d33] transition-colors">
+            <td className="p-4">
+                <div className="font-medium text-white">{sub.user.email}</div>
+                <div className="text-xs text-gray-500">{sub.user.fullName}</div>
+            </td>
+            <td className="p-4">
+                <select
+                    value={sub.user.role}
+                    onChange={(e) => onRoleChange(sub.user.id, e.target.value)}
+                    className="bg-[#050b18] border border-gray-700 rounded px-2 py-1 text-xs text-gray-300 outline-none focus:border-emerald-500"
+                >
+                    <option value="USER">USER</option>
+                    <option value="ADMIN">ADMIN</option>
+                </select>
+            </td>
+            <td className="p-4">
+                <div className="text-emerald-400 text-sm font-medium">{sub.plan?.name}</div>
+                <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded ${sub.status === 'active' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-yellow-500/10 text-yellow-500'
+                    }`}>
+                    {sub.status}
+                </span>
+            </td>
+            <td className="p-4">
+                <input
+                    type="text"
+                    value={m3u}
+                    onChange={e => setM3u(e.target.value)}
+                    className="w-32 md:w-48 bg-[#050b18] border border-gray-700 rounded px-2 py-1 text-sm outline-none focus:border-emerald-500"
+                    placeholder="http://..."
+                />
+            </td>
+            <td className="p-4">
+                <input
+                    type="date"
+                    value={expiry}
+                    onChange={e => setExpiry(e.target.value)}
+                    className="bg-[#050b18] border border-gray-700 rounded px-2 py-1 text-sm outline-none focus:border-emerald-500 text-gray-300"
+                />
+            </td>
+            <td className="p-4">
+                <button
+                    onClick={() => onSave(sub.id, m3u, expiry)}
+                    disabled={updating}
+                    className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded text-xs font-medium transition-colors disabled:opacity-50"
+                >
+                    {updating ? '...' : 'Save'}
+                </button>
+            </td>
+        </tr>
+    );
+}
+
+function StatCard({ title, value, color }) {
+    const colors = {
+        blue: "text-blue-400 bg-blue-400/10",
+        emerald: "text-emerald-400 bg-emerald-400/10",
+        yellow: "text-yellow-400 bg-yellow-400/10"
+    };
+    return (
+        <div className={`p-6 rounded-2xl bg-[#0f172a] border border-gray-800 ${colors[color] ? '' : ''}`}>
+            <h3 className="text-gray-400 text-xs uppercase font-semibold tracking-wider mb-2">{title}</h3>
+            <div className={`text-4xl font-bold ${colors[color].split(' ')[0]}`}>{value}</div>
+        </div>
+    );
+}
+
+export default function Page() {
+    return (
+        <AdminGuard>
+            <Ta7akomContent />
+        </AdminGuard>
     );
 }

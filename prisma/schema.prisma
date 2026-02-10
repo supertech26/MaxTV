@@ -7,44 +7,77 @@ generator client {
   provider = "prisma-client-js"
 }
 
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  name      String?
-  role      String   @default("USER") // ADMIN, USER
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  orders    Order[]
-  subscriptions Subscription[]
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL") // Recommended for Supabase
 }
 
-model Product {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  price       Float
-  duration    Int      // In months
-  type        String   // "SUBSCRIPTION", "APP_LICENSE"
-  platform    String?  // "SAMSUNG", "LG", "VIDAA" (for licenses)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  orderItems  OrderItem[]
+generator client {
+  provider = "prisma-client-js"
 }
 
+// Map to public.profiles
+model Profile {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email       String?
+  fullName    String?   @map("full_name")
+  avatarUrl   String?   @map("avatar_url")
+  role        String    @default("USER") // ADMIN, USER
+  updatedAt   DateTime? @updatedAt @map("updated_at")
+  
+  subscriptions UserSubscription[]
+  orders        Order[]
+
+  @@map("profiles")
+}
+
+// Map to public.plans
+model Plan {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name           String
+  description    String?
+  price          Decimal  @db.Decimal(10, 2)
+  durationMonths Int      @map("duration_months")
+  features       String[]
+  isActive       Boolean  @default(true) @map("is_active")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  subscriptions UserSubscription[]
+  orderItems    OrderItem[]
+
+  @@map("plans")
+}
+
+// Map to public.user_subscriptions
+model UserSubscription {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String    @map("user_id") @db.Uuid
+  user        Profile   @relation(fields: [userId], references: [id])
+  planId      String    @map("plan_id") @db.Uuid
+  plan        Plan      @relation(fields: [planId], references: [id])
+  status      String    @default("pending") // active, expired, pending, cancelled
+  startDate   DateTime? @map("start_date")
+  endDate     DateTime? @map("end_date")
+  m3uUrl      String?   @map("m3u_url")
+  macAddress  String?   @map("mac_address")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at")
+
+  @@map("user_subscriptions")
+}
+
+// Existing Order models adjusted slightly to link to Profile instead of 'User'
 model Order {
-  id            String   @id @default(cuid())
-  userId        String
-  user          User     @relation(fields: [userId], references: [id])
-  total         Float
-  currency      String   @default("EUR")
-  status        String   @default("PENDING") // PENDING, COMPLETED, CANCELLED
-  paymentStatus String   @default("UNPAID")  // UNPAID, PAID, FAILED
-  paymentMethod String?
-  transactionId String?
-  paymentProof  String?  // URL to uploaded image
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id            String      @id @default(cuid())
+  userId        String      @map("user_id") @db.Uuid
+  user          Profile     @relation(fields: [userId], references: [id])
+  total         Decimal     @db.Decimal(10, 2)
+  currency      String      @default("EUR")
+  status        String      @default("PENDING")
+  paymentStatus String      @default("UNPAID")
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
   items         OrderItem[]
 }
 
@@ -52,23 +85,8 @@ model OrderItem {
   id        String   @id @default(cuid())
   orderId   String
   order     Order    @relation(fields: [orderId], references: [id])
-  productId String
-  product   Product  @relation(fields: [productId], references: [id])
-  price     Float    // Snapshot of price at purchase
-  macAddress String?
-  subscription Subscription?
-}
-
-model Subscription {
-  id          String   @id @default(cuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  orderItemId String   @unique
-  orderItem   OrderItem @relation(fields: [orderItemId], references: [id])
-  macAddress  String?
-  status      String   @default("PENDING") // ACTIVE, EXPIRED, PENDING
-  startDate   DateTime?
-  endDate     DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  planId    String?  @map("plan_id") @db.Uuid // Optional link to Plan
+  plan      Plan?    @relation(fields: [planId], references: [id]) 
+  // Keep product logic for legacy or separate items if needed, but prefer Plan
+  price     Decimal  @db.Decimal(10, 2)
 }

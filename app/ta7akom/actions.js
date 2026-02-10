@@ -13,20 +13,29 @@ async function checkAdmin(email) {
     return user?.role === 'ADMIN';
 }
 
-export async function updateSubscription(subscriptionId, m3uUrl, endDate, adminEmail) {
+export async function updateSubscription(subscriptionId, data, adminEmail) {
     try {
         const isAdmin = await checkAdmin(adminEmail);
         if (!isAdmin) return { error: 'Unauthorized' };
 
-        const validDate = endDate ? new Date(endDate) : null;
+        // Clean undefined values
+        const updateData = {};
+        if (data.m3uUrl !== undefined) updateData.m3uUrl = data.m3uUrl;
+        if (data.macAddress !== undefined) updateData.macAddress = data.macAddress; // Add MAC support
+        if (data.status !== undefined) updateData.status = data.status;
+
+        if (data.endDate) {
+            const validDate = new Date(data.endDate);
+            updateData.endDate = validDate;
+            // Auto update status if not explicitly set
+            if (!data.status) {
+                updateData.status = validDate > new Date() ? 'active' : 'expired';
+            }
+        }
 
         await prisma.userSubscription.update({
             where: { id: subscriptionId },
-            data: {
-                m3uUrl: m3uUrl,
-                endDate: validDate,
-                status: validDate && validDate > new Date() ? 'active' : 'expired'
-            }
+            data: updateData
         });
 
         revalidatePath('/ta7akom');

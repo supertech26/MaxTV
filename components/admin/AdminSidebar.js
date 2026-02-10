@@ -1,157 +1,122 @@
 "use client";
+
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import {
+  LayoutDashboard,
+  Users,
+  CreditCard,
+  Settings,
+  LogOut,
+  ExternalLink,
+  Tv,
+  BarChart3,
+  Shield
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { useAuth } from '@/context/AuthContext';
+
+const menuGroups = [
+  {
+    label: 'Overview',
+    items: [
+      { name: 'Dashboard', href: '/ta7akom', icon: LayoutDashboard },
+      { name: 'Analytics', href: '/ta7akom/analytics', icon: BarChart3 },
+    ]
+  },
+  {
+    label: 'Management',
+    items: [
+      { name: 'Users', href: '/ta7akom/users', icon: Users },
+      { name: 'Subscriptions', href: '/ta7akom/subscriptions', icon: Tv },
+    ]
+  },
+  {
+    label: 'Finance',
+    items: [
+      { name: 'Orders', href: '/ta7akom/orders', icon: CreditCard },
+    ]
+  },
+  {
+    label: 'System',
+    items: [
+      { name: 'Settings', href: '/ta7akom/settings', icon: Settings },
+      { name: 'Admins', href: '/ta7akom/admins', icon: Shield },
+    ]
+  }
+];
 
 export default function AdminSidebar() {
   const pathname = usePathname();
-
-  const menuGroups = [
-    {
-      title: 'Overview',
-      items: [
-        { href: '/ta7akom', label: 'Dashboard', icon: '📊' }
-      ]
-    },
-    {
-      title: 'Management',
-      items: [
-        { href: '/ta7akom/users', label: 'Users', icon: '👥' },
-        { href: '/ta7akom/subscriptions', label: 'Subscriptions', icon: '📺' }
-      ]
-    },
-    {
-      title: 'Finance',
-      items: [
-        { href: '/ta7akom/orders', label: 'Orders', icon: '💰' }
-      ]
-    },
-    {
-      title: 'System',
-      items: [
-        { href: '/ta7akom/settings', label: 'Settings', icon: '⚙️' }
-      ]
-    }
-  ];
+  const { logout, user } = useAuth();
 
   return (
-    <aside className="sidebar">
-      <div className="sidebar-header">
-        <h2>Control Panel</h2>
+    <aside className="w-64 bg-[#050b18] border-r border-white/5 flex flex-col h-screen fixed left-0 top-0 z-50">
+      {/* Brand */}
+      <div className="h-16 flex items-center px-6 border-b border-white/5">
+        <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center mr-3">
+          <div className="w-4 h-4 bg-black rounded-sm" />
+        </div>
+        <span className="font-bold text-white tracking-tight">IPShopTV</span>
       </div>
 
-      <nav className="sidebar-nav">
-        {menuGroups.map((group, index) => (
-          <div key={index} className="nav-group">
-            <h3 className="group-title">{group.title}</h3>
-            {group.items.map(link => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`nav-item ${pathname === link.href ? 'active' : ''}`}
-              >
-                <span className="icon">{link.icon}</span>
-                {link.label}
-              </Link>
-            ))}
+      {/* Navigation */}
+      <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-8">
+        {menuGroups.map((group) => (
+          <div key={group.label}>
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-2">
+              {group.label}
+            </h3>
+            <div className="space-y-1">
+              {group.items.map((item) => {
+                const isActive = pathname === item.href;
+                const Icon = item.icon;
+
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-2 rounded-md transition-all text-sm font-medium group",
+                      isActive
+                        ? "bg-white/10 text-white"
+                        : "text-gray-400 hover:text-white hover:bg-white/5"
+                    )}
+                  >
+                    <Icon size={18} className={cn(isActive ? "text-white" : "text-gray-500 group-hover:text-white")} />
+                    {item.name}
+                  </Link>
+                );
+              })}
+            </div>
           </div>
         ))}
       </nav>
 
-      <div className="sidebar-footer">
-        <Link href="/" className="nav-item back-link">
-          <span className="icon">↩️</span> Back to Site
+      {/* Footer */}
+      <div className="p-4 border-t border-white/5 bg-[#050b18]">
+        <Link
+          href="/"
+          target="_blank"
+          className="flex items-center gap-2 px-3 py-2 text-sm text-gray-400 hover:text-white transition-colors mb-2"
+        >
+          <ExternalLink size={16} />
+          Back to Website
         </Link>
+
+        <div className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-white/5 transition-colors cursor-pointer group">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-emerald-500 to-cyan-500 flex items-center justify-center text-white font-bold text-xs ring-2 ring-[#050b18] group-hover:ring-white/20 transition-all">
+            {user?.email?.[0]?.toUpperCase() || 'A'}
+          </div>
+          <div className="flex-1 overflow-hidden">
+            <p className="text-sm font-medium text-white truncate">{user?.email?.split('@')[0]}</p>
+            <p className="text-[10px] text-gray-500 truncate">Super Admin</p>
+          </div>
+          <button onClick={logout} className="text-gray-500 hover:text-red-400 transition-colors">
+            <LogOut size={16} />
+          </button>
+        </div>
       </div>
-
-      <style jsx>{`
-        .sidebar {
-          width: 260px;
-          background: rgba(15, 17, 21, 0.6);
-          backdrop-filter: blur(16px);
-          border-right: 1px solid var(--border);
-          display: flex;
-          flex-direction: column;
-          height: 100vh;
-          position: fixed;
-          left: 0;
-          top: 0;
-          z-index: 50;
-        }
-        .sidebar-header {
-          padding: 1.5rem;
-          border-bottom: 1px solid var(--border);
-          margin-bottom: 1rem;
-        }
-        .sidebar-header h2 {
-          font-size: 1.25rem;
-          background: linear-gradient(135deg, #fff 0%, var(--primary) 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          margin: 0;
-          font-weight: 800;
-          letter-spacing: -0.5px;
-          text-transform: uppercase;
-        }
-        .sidebar-nav {
-          padding: 0 1rem;
-          flex: 1;
-          overflow-y: auto;
-        }
-        
-        .nav-group {
-          margin-bottom: 1.5rem;
-        }
-        
-        .group-title {
-          font-size: 0.75rem;
-          text-transform: uppercase;
-          color: var(--text-muted);
-          margin-bottom: 0.75rem;
-          padding-left: 0.75rem;
-          letter-spacing: 1px;
-          font-weight: 600;
-          opacity: 0.7;
-        }
-
-        .nav-item {
-          display: flex;
-          align-items: center;
-          gap: 0.75rem;
-          padding: 0.75rem 1rem;
-          color: var(--text-muted);
-          text-decoration: none;
-          border-radius: 8px;
-          margin-bottom: 0.25rem;
-          transition: all 0.2s ease;
-          font-size: 0.95rem;
-          font-weight: 500;
-        }
-        .nav-item:hover {
-          background: rgba(255, 255, 255, 0.05);
-          color: var(--foreground);
-        }
-        .nav-item.active {
-          background: rgba(0, 220, 130, 0.1);
-          color: var(--primary);
-        }
-        .icon {
-          font-size: 1.1rem;
-          width: 20px;
-          text-align: center;
-        }
-
-        .sidebar-footer {
-          padding: 1rem;
-          border-top: 1px solid var(--border);
-        }
-        .back-link {
-            color: var(--text-muted);
-            opacity: 0.8;
-        }
-        .back-link:hover {
-            opacity: 1;
-        }
-      `}</style>
     </aside>
   );
 }

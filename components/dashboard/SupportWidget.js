@@ -19,7 +19,7 @@ export default function SupportWidget() {
             <div className="md:col-span-2 bg-[#0f172a] p-6 rounded-2xl border border-gray-800 flex flex-col md:flex-row items-center justify-between gap-6">
                 <div>
                     <h3 className="text-xl font-bold text-white mb-2">Open a Support Ticket</h3>
-                    <p className="text-gray-400 text-sm">Having issues? Submit a detailed request and we'll fix it.</p>
+                    <p className="text-gray-400 text-sm">Having issues? Submit a detailed request and we&apos;ll fix it.</p>
                 </div>
                 <button className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-xl font-bold transition-colors shadow-lg shadow-blue-600/20">
                     Create Ticket

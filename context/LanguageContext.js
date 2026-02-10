@@ -8,8 +8,15 @@ export function LanguageProvider({ children }) {
 
     useEffect(() => {
         // Load saved language
-        const saved = localStorage.getItem('language');
-        if (saved) setLanguage(saved);
+        try {
+            const saved = localStorage.getItem('language');
+            if (saved && saved !== language) {
+                setLanguage(saved);
+            }
+        } catch (e) {
+            console.warn('LocalStorage access failed', e);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const switchLanguage = (lang) => {

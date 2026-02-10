@@ -1,49 +1,49 @@
 "use client";
 
 export default function Testimonials() {
-    const reviews = [
-        {
-            name: "Ahmed K.",
-            role: "Verified Customer",
-            content: "Best IPTV service I have used. No buffering during huge football matches. Support is very fast.",
-            stars: 5,
-        },
-        {
-            name: "Sarah Jenkins",
-            role: "Verified Customer",
-            content: "I love the 4K movie collection. Setup was instant on my Samsung TV. Highly recommended!",
-            stars: 5,
-        },
-        {
-            name: "Michael R.",
-            role: "Verified Customer",
-            content: "Finally a stable service. I tried many others but ipmaxtv is the only one that doesn't freeze.",
-            stars: 5,
-        },
-    ];
+  const reviews = [
+    {
+      name: "Ahmed K.",
+      role: "Verified Customer",
+      content: "Best IPTV service I have used. No buffering during huge football matches. Support is very fast.",
+      stars: 5,
+    },
+    {
+      name: "Sarah Jenkins",
+      role: "Verified Customer",
+      content: "I love the 4K movie collection. Setup was instant on my Samsung TV. Highly recommended!",
+      stars: 5,
+    },
+    {
+      name: "Michael R.",
+      role: "Verified Customer",
+      content: "Finally a stable service. I tried many others but ipmaxtv is the only one that doesn't freeze.",
+      stars: 5,
+    },
+  ];
 
-    return (
-        <section className="container section-pad">
-            <h2 className="section-title">Testimonials</h2>
-            <p className="section-subtitle">Trusted by Thousands</p>
+  return (
+    <section className="container section-pad">
+      <h2 className="section-title">Testimonials</h2>
+      <p className="section-subtitle">Trusted by Thousands</p>
 
-            <div className="testimonials-grid">
-                {reviews.map((review, i) => (
-                    <div key={i} className="review-card">
-                        <div className="stars">{"★".repeat(review.stars)}</div>
-                        <p className="content">"{review.content}"</p>
-                        <div className="author">
-                            <div className="avatar">{review.name[0]}</div>
-                            <div className="info">
-                                <span className="name">{review.name}</span>
-                                <span className="role">{review.role}</span>
-                            </div>
-                        </div>
-                    </div>
-                ))}
+      <div className="testimonials-grid">
+        {reviews.map((review, i) => (
+          <div key={i} className="review-card">
+            <div className="stars">{"★".repeat(review.stars)}</div>
+            <p className="content">&quot;{review.content}&quot;</p>
+            <div className="author">
+              <div className="avatar">{review.name[0]}</div>
+              <div className="info">
+                <span className="name">{review.name}</span>
+                <span className="role">{review.role}</span>
+              </div>
             </div>
+          </div>
+        ))}
+      </div>
 
-            <style jsx>{`
+      <style jsx>{`
         .section-pad {
           padding: 4rem 1rem;
         }
@@ -109,6 +109,6 @@ export default function Testimonials() {
           color: var(--text-muted);
         }
       `}</style>
-        </section>
-    );
+    </section>
+  );
 }

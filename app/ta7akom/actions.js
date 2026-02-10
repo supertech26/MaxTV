@@ -59,7 +59,7 @@ export async function fetchAllData(adminEmail) {
     const isAdmin = await checkAdmin(adminEmail);
     if (!isAdmin) return { error: 'Unauthorized' };
 
-    const [subscriptions, profiles] = await Promise.all([
+    const [subscriptions, profiles, orders] = await Promise.all([
         prisma.userSubscription.findMany({
             include: {
                 user: { select: { id: true, email: true, fullName: true, role: true } },
@@ -68,7 +68,13 @@ export async function fetchAllData(adminEmail) {
             orderBy: { updatedAt: 'desc' }
         }),
         prisma.profile.findMany({
-            orderBy: { updatedAt: 'desc' } // Just to have list of all users if needed
+            orderBy: { updatedAt: 'desc' }
+        }),
+        prisma.order.findMany({
+            include: {
+                user: { select: { email: true } }
+            },
+            orderBy: { createdAt: 'desc' }
         })
     ]);
 
@@ -76,11 +82,14 @@ export async function fetchAllData(adminEmail) {
     const totalUsers = profiles.length;
     const activeSubs = subscriptions.filter(s => s.status === 'active').length;
     const pendingSubs = subscriptions.filter(s => s.status === 'pending').length;
+    const totalRevenue = orders.reduce((sum, order) => sum + Number(order.total), 0);
 
     return {
         data: {
             subscriptions,
-            stats: { totalUsers, activeSubs, pendingSubs }
+            profiles,
+            orders,
+            stats: { totalUsers, activeSubs, pendingSubs, totalRevenue }
         }
     };
 }

@@ -1,106 +1,124 @@
 "use client";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/context/AuthContext';
+import { fetchAllData, updateSubscription } from '../actions';
+import AdminGuard from '@/components/auth/AdminGuard';
 
-export default function AdminSubscriptions() {
-    const [subs, setSubs] = useState([
-        { id: 101, user: 'john@example.com', plan: '12 Months IPTV', mac: '00:1A:79:XX:XX:XX', status: 'Active', expires: '2025-02-05' },
-        { id: 102, user: 'sarah@test.com', plan: 'Samsung License', mac: 'BC:54:21:XX:XX:XX', status: 'Pending', expires: '-' },
-        { id: 103, user: 'david@mail.com', plan: '3 Months IPTV', mac: 'Pending', status: 'Expired', expires: '2024-01-10' },
-    ]);
+function SubscriptionsContent() {
+    const { user } = useAuth();
+    const [subs, setSubs] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [updating, setUpdating] = useState(null);
 
-    const activate = (id) => {
-        setSubs(subs.map(s => s.id === id ? { ...s, status: 'Active', expires: '2025-02-05' } : s));
+    useEffect(() => {
+        loadData();
+    }, []);
+
+    const loadData = async () => {
+        try {
+            const res = await fetchAllData(user?.email);
+            if (!res.error) {
+                setSubs(res.data.subscriptions);
+            }
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setLoading(false);
+        }
     };
 
-    return (
-        <div>
-            <h1 style={{ marginBottom: '2rem' }}>Subscription Management</h1>
+    const handleSave = async (subId, m3u, date) => {
+        setUpdating(subId);
+        const res = await updateSubscription(subId, m3u, date, user?.email);
+        if (res.success) {
+            alert("Updated!");
+            loadData();
+        } else {
+            alert("Error: " + res.error);
+        }
+        setUpdating(null);
+    };
 
-            <div className="table-card">
-                <table>
+    if (loading) return <div className="text-white text-center p-20">Loading Subscriptions...</div>;
+
+    return (
+        <div className="min-h-screen bg-[#050b18] text-white p-8 font-sans">
+            <h1 className="text-3xl font-bold mb-8 text-emerald-400">Subscription Management</h1>
+
+            <div className="overflow-x-auto bg-[#0f172a] rounded-xl border border-gray-800 shadow-xl">
+                <table className="w-full text-left border-collapse">
                     <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>User</th>
-                            <th>Plan</th>
-                            <th>MAC Address</th>
-                            <th>Status</th>
-                            <th>Expires</th>
-                            <th>Actions</th>
+                        <tr className="bg-[#1e293b] text-gray-400 text-sm uppercase">
+                            <th className="p-4">User</th>
+                            <th className="p-4">Plan</th>
+                            <th className="p-4">Status</th>
+                            <th className="p-4">M3U Link</th>
+                            <th className="p-4">Expiry</th>
+                            <th className="p-4">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {subs.map(sub => (
-                            <tr key={sub.id}>
-                                <td>#{sub.id}</td>
-                                <td>{sub.user}</td>
-                                <td>{sub.plan}</td>
-                                <td><code className="mac">{sub.mac}</code></td>
-                                <td>
-                                    <span className={`status-badge ${sub.status.toLowerCase()}`}>
-                                        {sub.status}
-                                    </span>
-                                </td>
-                                <td>{sub.expires}</td>
-                                <td>
-                                    <div className="actions">
-                                        {sub.status === 'Pending' && (
-                                            <button className="btn-action activate" onClick={() => activate(sub.id)}>Activate</button>
-                                        )}
-                                        {sub.status === 'Active' && (
-                                            <button className="btn-action extend">Extend</button>
-                                        )}
-                                        <button className="btn-action edit">Edit</button>
-                                    </div>
-                                </td>
-                            </tr>
+                            <SubscriptionRow key={sub.id} sub={sub} onSave={handleSave} updating={updating === sub.id} />
                         ))}
                     </tbody>
                 </table>
+                {subs.length === 0 && <div className="p-8 text-center text-gray-500">No subscriptions found.</div>}
             </div>
-
-            <style jsx>{`
-        .table-card {
-          background: var(--secondary);
-          border: 1px solid var(--border);
-          border-radius: 12px;
-          overflow-x: auto;
-        }
-        table { width: 100%; border-collapse: collapse; min-width: 800px; }
-        th, td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--border); }
-        th { background: rgba(0,0,0,0.2); }
-        
-        .mac {
-            background: #111;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 0.85rem;
-            color: #ddd;
-        }
-
-        .status-badge {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-        .active { color: #00dc82; background: rgba(0, 220, 130, 0.1); }
-        .pending { color: #ffd700; background: rgba(255, 215, 0, 0.1); }
-        .expired { color: #ff5b5b; background: rgba(255, 91, 91, 0.1); }
-
-        .actions { display: flex; gap: 0.5rem; }
-        .btn-action {
-            padding: 4px 10px;
-            border-radius: 4px;
-            border: none;
-            cursor: pointer;
-            font-size: 0.8rem;
-            font-weight: 500;
-        }
-        .activate { background: #00dc82; color: #000; }
-        .extend { background: #3b82f6; color: white; }
-        .edit { background: #2d323f; color: white; }
-      `}</style>
         </div>
+    );
+}
+
+function SubscriptionRow({ sub, onSave, updating }) {
+    const [m3u, setM3u] = useState(sub.m3uUrl || '');
+    const [expiry, setExpiry] = useState(sub.endDate ? new Date(sub.endDate).toISOString().split('T')[0] : '');
+
+    return (
+        <tr className="border-b border-gray-800 hover:bg-[#131d33]">
+            <td className="p-4">
+                <div className="font-medium text-white">{sub.user.email}</div>
+            </td>
+            <td className="p-4 text-emerald-400">{sub.plan?.name}</td>
+            <td className="p-4">
+                <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${sub.status === 'active' ? 'bg-emerald-900 text-emerald-400' : 'bg-yellow-900 text-yellow-400'
+                    }`}>
+                    {sub.status}
+                </span>
+            </td>
+            <td className="p-4">
+                <input
+                    type="text"
+                    value={m3u}
+                    onChange={e => setM3u(e.target.value)}
+                    className="w-48 bg-[#050b18] border border-gray-700 rounded px-2 py-1 text-sm focus:border-emerald-500"
+                    placeholder="http://..."
+                />
+            </td>
+            <td className="p-4">
+                <input
+                    type="date"
+                    value={expiry}
+                    onChange={e => setExpiry(e.target.value)}
+                    className="bg-[#050b18] border border-gray-700 rounded px-2 py-1 text-sm focus:border-emerald-500 text-white"
+                />
+            </td>
+            <td className="p-4">
+                <button
+                    onClick={() => onSave(sub.id, m3u, expiry)}
+                    disabled={updating}
+                    className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded text-xs"
+                >
+                    {updating ? '...' : 'Save'}
+                </button>
+            </td>
+        </tr>
+    );
+}
+
+export default function Page() {
+    return (
+        <AdminGuard>
+            <SubscriptionsContent />
+        </AdminGuard>
     );
 }

@@ -1,140 +1,89 @@
 "use client";
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/context/AuthContext';
+import { getUserDashboardData } from './actions';
+import SubscriptionCard from '@/components/dashboard/SubscriptionCard';
+import DownloadSection from '@/components/dashboard/DownloadSection';
+import SetupGuide from '@/components/dashboard/SetupGuide';
+import OrderList from '@/components/dashboard/OrderList';
+import SupportWidget from '@/components/dashboard/SupportWidget';
 import Button from '@/components/ui/Button';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
 
 export default function Dashboard() {
-  const router = useRouter();
+  const { user, isLoading: authLoading } = useAuth();
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  /* Manual check removed, handled by ProtectedRoute wrapper in Layout */
+  useEffect(() => {
+    if (!authLoading && user?.email) {
+      loadDashboard();
+    }
+  }, [user, authLoading]);
 
+  const loadDashboard = async () => {
+    try {
+      const res = await getUserDashboardData(user.email);
+      if (!res.error) {
+        setData(res.data);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500"></div>
+    </div>
+  );
 
   return (
-    <div>
-      <h1 className="page-title">Dashboard Overview</h1>
+    <div className="pb-20 animate-fade-in">
+      <header className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <h1 className="text-4xl font-black text-white mb-2 tracking-tight">
+            Hello, <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-500">{data?.user.name}</span>
+          </h1>
+          <p className="text-gray-400">Welcome to your premium control panel.</p>
+        </div>
+        <div className="flex gap-3">
+          <Button size="sm" variant="outline">Refresh Playlist</Button>
+          <Button size="sm">Extend Plan</Button>
+        </div>
+      </header>
 
-      <div className="stats-grid">
-        <div className="stat-card">
-          <h3>Active Subscriptions</h3>
-          <p className="value">1</p>
-          <span className="status active">Active</span>
+      <div className="max-w-5xl mx-auto">
+        <SubscriptionCard sub={data?.subscription} />
+        <DownloadSection sub={data?.subscription} />
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <SetupGuide />
+          <div className="mt-8">
+            <h3 className="text-xl font-bold text-white mb-4">Quick Actions</h3>
+            <div className="grid grid-cols-2 gap-4 mb-8">
+              <button className="p-4 bg-[#0f172a] rounded-xl border border-gray-800 hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all text-left group">
+                <div className="text-2xl mb-2 group-hover:scale-110 transition-transform origin-left">🔒</div>
+                <div className="font-bold text-white text-sm">Parental Control</div>
+              </button>
+              <button className="p-4 bg-[#0f172a] rounded-xl border border-gray-800 hover:border-blue-500/50 hover:bg-blue-500/5 transition-all text-left group">
+                <div className="text-2xl mb-2 group-hover:scale-110 transition-transform origin-left">🧪</div>
+                <div className="font-bold text-white text-sm">Request Trial</div>
+              </button>
+            </div>
+            <OrderList orders={data?.orders} />
+          </div>
         </div>
-        <div className="stat-card">
-          <h3>Total Orders</h3>
-          <p className="value">3</p>
-        </div>
-        <div className="stat-card">
-          <h3>Reward Points</h3>
-          <p className="value">150</p>
-        </div>
+
+        <h3 className="text-xl font-bold text-white mb-6">Support & Help</h3>
+        <SupportWidget />
       </div>
 
-      <h2 className="section-title">My Services</h2>
-      <div className="services-list">
-        <div className="service-card">
-          <div className="service-header">
-            <div>
-              <h4>12 Months IPTV</h4>
-              <p className="mac">MAC: 00:1A:2B:3C:4D:5E</p>
-            </div>
-            <span className="badge active">Active</span>
-          </div>
-          <div className="service-details">
-            <p>Expires: <span className="highlight">12 Dec 2026</span></p>
-            <p>Username: <strong>User123</strong></p>
-            <p>Password: <strong>••••••</strong></p>
-          </div>
-          <div className="service-actions">
-            <Button size="sm">Extend</Button>
-            <Button variant="outline" size="sm">Download M3U</Button>
-          </div>
-        </div>
-
-        {/* Example App License */}
-        <div className="service-card">
-          <div className="service-header">
-            <div>
-              <h4>IBO Player License</h4>
-              <p className="mac">MAC: AA:BB:CC:11:22:33</p>
-            </div>
-            <span className="badge active">Active</span>
-          </div>
-          <div className="service-details">
-            <p>Type: <strong>Lifetime License</strong></p>
-            <p>Platform: <strong>Samsung TV</strong></p>
-            <p>Activated: <strong>05 Feb 2024</strong></p>
-          </div>
-          <div className="service-actions">
-            <Button variant="outline" size="sm">View Instructions</Button>
-          </div>
-        </div>
-      </div>
-
-      <style jsx>{`
-        .page-title { margin-bottom: 2rem; }
-        .section-title { margin: 3rem 0 1.5rem; font-size: 1.5rem; }
-        
-        .stats-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-          gap: 1.5rem;
-        }
-        .stat-card {
-          background: var(--secondary);
-          padding: 1.5rem;
-          border-radius: 12px;
-          border: 1px solid var(--border);
-        }
-        .stat-card h3 { font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.5rem; }
-        .value { font-size: 2rem; font-weight: 700; }
-        
-        .actions-bar { margin: 2rem 0; display: flex; justify-content: flex-end; }
-        
-        .service-card {
-          background: var(--secondary);
-          border: 1px solid var(--border);
-          border-radius: 12px;
-          padding: 1.5rem;
-          margin-bottom: 1rem;
-        }
-        .service-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          margin-bottom: 1.5rem;
-          padding-bottom: 1rem;
-          border-bottom: 1px solid var(--border);
-        }
-        .mac { font-family: monospace; color: var(--text-muted); font-size: 0.875rem; margin-top: 0.25rem; }
-        
-        .service-details {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-          gap: 1rem;
-          margin-bottom: 1.5rem;
-        }
-        .highlight { color: var(--primary); }
-        
-        .service-actions {
-          display: flex;
-          gap: 1rem;
-        }
-        
-        .badge {
-          padding: 4px 12px;
-          border-radius: 20px;
-          font-size: 0.75rem;
-          font-weight: 600;
-        }
-        .badge.active { background: rgba(0, 220, 130, 0.1); color: var(--primary); }
-        .status.active { color: var(--primary); font-size: 0.875rem; font-weight: 500; }
-        
-        @media (max-width: 600px) {
-          .service-header { flex-direction: column; gap: 1rem; }
-        }
-      `}</style>
+      <footer className="text-center text-gray-500 text-sm mt-20 pb-10 border-t border-gray-800 pt-10">
+        &copy; 2024 IPShopTV. All rights reserved. <br />
+        <span className="text-xs opacity-50">v2.5.0 Premium Build</span>
+      </footer>
     </div>
   );
 }
